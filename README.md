@@ -7,7 +7,7 @@
 ![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
 
-[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-financial--tracker--1ky7.vercel.app-brightgreen?style=for-the-badge)](https://financial-tracker-1ky7.vercel.app/)
+[![Live Demo](EZSALDO)](https://ezsaldo.vercel.app)
 ![Tests](https://github.com/kiellzz/financial-tracker/actions/workflows/tests.yml/badge.svg)
 
 **EZSaldo** is a financial management web application built with a strong focus on **clarity, organization, and user experience**.
