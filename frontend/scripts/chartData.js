@@ -94,18 +94,6 @@
     };
   }
 
-  function getAccountStartKey(accountCreatedAt, todayKey) {
-    const accountStartKey = dateUtils.getTransactionDateKey(accountCreatedAt);
-
-    if (!accountStartKey) {
-      return null;
-    }
-
-    return accountStartKey > todayKey
-      ? todayKey
-      : accountStartKey;
-  }
-
   function buildBoundedChartSeries(
     normalizedTransactions = [],
     startKey,
@@ -219,18 +207,14 @@
     }
 
     if (range === "account") {
-      const startKey = getAccountStartKey(options.accountCreatedAt, todayKey);
-
-      if (!startKey) {
-        return buildCompleteSeries(normalizedTransactions);
-      }
+      const startKey = normalizedTransactions[0].dateKey;
 
       return buildBoundedChartSeries(
         normalizedTransactions,
         startKey,
         todayKey,
         {
-          startLabelPrefix: "Conta criada",
+          startLabelPrefix: "Primeira transa\u00e7\u00e3o",
           endLabelPrefix: "Hoje"
         }
       );
@@ -260,7 +244,7 @@
     }
 
     if (range === "account") {
-      return getAccountStartKey(options.accountCreatedAt, todayKey) || todayKey;
+      return todayKey;
     }
 
     const days = Number(range);

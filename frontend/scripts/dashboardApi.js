@@ -1,5 +1,5 @@
 (function (window) {
-  const { API_URL, AUTH_API_URL } = window.EZSaldoConfig;
+  const { API_URL, AUTH_API_URL, ANALYTICS_API_URL } = window.EZSaldoConfig;
 
   function createDashboardApi(token) {
     function getRequestHeaders(withJson = false) {
@@ -59,6 +59,30 @@
       };
     }
 
+    async function getAnalyticsSummary() {
+      const response = await fetch(`${ANALYTICS_API_URL}/summary`, {
+        headers: getRequestHeaders()
+      });
+
+      return readJsonResponse(
+        response,
+        "Erro ao carregar a análise financeira"
+      );
+    }
+
+    async function downloadMonthlyReport(month, format) {
+      const query = new URLSearchParams({ month, format });
+      const response = await fetch(`${ANALYTICS_API_URL}/report?${query}`, {
+        headers: getRequestHeaders()
+      });
+
+      if (!response.ok) {
+        await readJsonResponse(response, "Erro ao exportar o relatório");
+      }
+
+      return response.blob();
+    }
+
     async function saveTransaction(transaction, editingId = null) {
       const response = await fetch(editingId ? `${API_URL}/${editingId}` : API_URL, {
         method: editingId ? "PUT" : "POST",
@@ -80,6 +104,8 @@
 
     return {
       deleteTransaction,
+      downloadMonthlyReport,
+      getAnalyticsSummary,
       getCurrentUserProfile,
       getTransactions,
       saveTransaction

@@ -1,237 +1,150 @@
-# 💰 EZSaldo • Financial Web App
+# EZSaldo • Financial management and analytics
 
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![pandas](https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-EZSaldo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://ezsaldo.vercel.app)
-![Tests](https://github.com/kiellzz/financial-tracker/actions/workflows/tests.yml/badge.svg)
 
-**EZSaldo** is a financial management web application built with a strong focus on **clarity, organization, and user experience**.
+**EZSaldo** is a full-stack financial application for tracking income and expenses, monitoring balance changes, and turning transaction history into clear insights.
 
-The system allows users to manage income and expenses, track balance in real time, review period results, and visualize financial evolution through a modern and interactive dashboard.
+In addition to traditional financial management, the project includes an independent Python service for statistical calculations, projections, and reports. It demonstrates a realistic, secure architecture designed to evolve.
 
----
+## The product
 
-## 🎯 Project Goal
+- Registration, JWT authentication, and user profiles with avatars.
+- Income and expenses organized by category and user.
+- History filters by date, type, and amount, plus balance changes by period.
+- Spending by category, monthly trends, and previous-month comparisons.
+- IQR-based unusual expense detection and moving-average balance estimates.
+- Monthly PDF reports, responsive layout, and a read-only demo account.
 
-This project was built to:
+## Financial analytics
 
-- Simulate a real-world financial system
-- Practice fullstack development (frontend + backend)
-- Apply UX/UI concepts in a functional product
+![Financial analytics](./media/dataanalysis.png)
 
----
-
-## 📸 Preview
-
-### 🔐 Login Screen
-![Login](./media/login.png)
-
-### 📊 Financial Dashboard
-![Dashboard](./media/dashboard.png)
-
-### 👤 Profile Editing
-![Edit User](./media/edituser.png)
-
-### ✂️ Avatar Cropping
-![Crop](./media/crop.png)
-
----
-
-## 🛠 Tech Stack
-
-### 🔹 Frontend
-- HTML5
-- CSS3
-- Vanilla JavaScript
-- Modular frontend scripts under `frontend/scripts`
-- Responsive interface
-- Visual feedback (loaders, states, modals)
-
-### 🔹 Backend
-- Node.js
-- Express
-- MongoDB (Atlas)
-- Mongoose
-- JWT (authentication)
-- bcrypt (password hashing)
-
-### 🔹 Testing
-- Jest
-- Supertest
-- MongoDB Memory Server (in-memory database for isolated tests)
-
-### 🔹 Deploy
-- Frontend: Vercel
-- Backend: Render
-- Database: MongoDB Atlas
-
----
-
-## 🚀 Features
-
-- 🔐 **Secure Authentication**
-  - Register and login with hashed passwords
-  - JWT-based authentication
-
-- 💰 **Transaction Management**
-  - Add income and expenses
-  - Edit and delete records
-
-- 📊 **Dynamic Dashboard**
-  - Real-time balance updates
-  - Visual differentiation (income vs expenses)
-  - Balance evolution chart
-  - Period result summary showing profit, loss, or neutral balance
-
-- 📅 **Date Filters**
-  - View data by time range (today, 7 days, 30 days)
-  - Filter the chart from the user's account creation date
-
-- 🎨 **User Experience**
-  - Confirmation modals (delete/logout)
-  - Visual feedback for actions
-  - Loading states with wait-time notice during requests
-  - Clean and modern interface
-
----
-
-## 🧩 Highlights
-
-- Interface inspired by real fintech applications
-- Strong focus on **usability and visual feedback**
-- Clean architecture (separated frontend & backend)
-- Dashboard logic organized into smaller script files
-- Built as a **product**, not just a CRUD
-
----
-
-## 🖥️ Project Structure
+The analytics service is stateless and has no database access. Node authenticates the user, retrieves only their transactions, and sends Python only the fields required for analysis.
 
 ```text
-CrudFinanceiro/
-├─ .github/
-│  └─ workflows/
-│     └─ tests.yml
-│
-├─ backend/
-│  ├─ src/
-│  │  ├─ __tests__/
-│  │  │  ├─ auth.test.js
-│  │  │  └─ transactions.test.js
-│  │  ├─ middleware/
-│  │  │  └─ authMiddleware.js
-│  │  ├─ models/
-│  │  │  ├─ Transaction.js
-│  │  │  └─ User.js
-│  │  ├─ routes/
-│  │  │  ├─ authRoutes.js
-│  │  │  └─ transactionRoutes.js
-│  │  ├─ app.js
-│  │  └─ server.js
-│  ├─ .env.example
-│  ├─ package-lock.json
-│  └─ package.json
-│
-├─ frontend/
-│  ├─ assets/
-│  ├─ dashboard.css
-│  ├─ dashboard.html
-│  ├─ editUser.css
-│  ├─ editUser.html
-│  ├─ index.html
-│  ├─ login.html
-│  ├─ register.html
-│  ├─ scripts/
-│  │  ├─ auth.js
-│  │  ├─ balanceChart.js
-│  │  ├─ chartData.js
-│  │  ├─ config.js
-│  │  ├─ cropImage.js
-│  │  ├─ dashboard.js
-│  │  ├─ dashboardApi.js
-│  │  ├─ dashboardDom.js
-│  │  ├─ dateUtils.js
-│  │  ├─ editUser.js
-│  │  └─ formatters.js
-│  └─ style.css
-│
-├─ media/
-│  ├─ login.png
-│  ├─ dashboard.png
-│  ├─ edituser.png
-│  └─ crop.png
-│
-└─ README.md
+Frontend ── JWT ──> Node.js / Express ──> MongoDB
+                         │
+                         └── internal key ──> FastAPI + pandas
 ```
 
----
+The browser never calls FastAPI directly. If the analytics service is unavailable, only this section displays an error; transactions, profile management, and balance tracking remain available.
 
-## ⚙️ Running Locally
+### Technical decisions
 
-### 1. Clone the repository
+- **Separate Python service:** pandas handles grouping, time series, and statistics without coupling these tasks to the authentication and CRUD backend.
+- **IQR for unusual expenses:** it is less sensitive to extreme values than the mean and standard deviation. An expense is flagged above `Q3 + 1.5 × IQR`.
+- **Moving average:** it uses the net result of the last 3 complete months. When data is insufficient, the API returns a warning instead of a misleading projection.
+- **Security:** JWT protects the public API, an internal key protects Node → Python communication, and every query is scoped to the authenticated user ID.
 
-```bash
-git clone https://github.com/kiellzz/financial-tracker.git
-cd financial-tracker
+## Stack
+
+- **Frontend:** HTML5, CSS3, JavaScript, and Chart.js.
+- **Backend:** Node.js, Express, Mongoose, JWT, and bcrypt.
+- **Analytics:** Python, FastAPI, Pydantic, pandas, and ReportLab.
+- **Data and infrastructure:** MongoDB, Docker Compose, and Vercel.
+
+## Running locally
+
+### Recommended: Docker Compose
+
+Requirements: Docker Desktop running with Docker Compose available.
+
+1. Create the environment file:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
-### 2. Backend Setup
+2. In `.env`, set long, different values for `JWT_SECRET` and `ANALYTICS_API_KEY`.
 
-```bash
+3. Build and start all services:
+
+```powershell
+docker compose up --build
+```
+
+4. Open:
+
+- Frontend: `http://localhost:8080`
+- Backend: `http://localhost:5000`
+- FastAPI is available only on the internal Compose network.
+
+To stop the application:
+
+```powershell
+docker compose down
+```
+
+### Demo account
+
+```text
+Email:    demo.ezsaldo@example.test
+Password: EZSaldo-Demo-2026
+```
+
+This account is read-only. The 70 synthetic transactions are restored to their original state when the backend starts and every 30 minutes while it remains active. Real accounts are never affected.
+
+### Running without Docker
+
+Start MongoDB and configure each service using its `.env.example`. Then run the following commands in separate terminals:
+
+```powershell
+# Node backend
 cd backend
 npm install
+npm run dev
 ```
 
-Create a `.env` file:
-
-```env
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
+```powershell
+# Python service
+cd analytics-service
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
 ```
 
-Start the server:
+Serve the `frontend/` directory on `localhost`. Use the same key for Node's `ANALYTICS_API_KEY` and Python's `INTERNAL_API_KEY`.
 
-```bash
-node src/server.js
-```
+## Main configuration
 
-> 📍 Backend running at: http://localhost:5000
+| Variable | Purpose |
+|---|---|
+| `MONGO_URI` | MongoDB connection string |
+| `JWT_SECRET` | JWT signing secret |
+| `ANALYTICS_SERVICE_URL` | Internal FastAPI URL |
+| `ANALYTICS_API_KEY` | Key shared by Node and Python |
+| `ANALYTICS_TIMEOUT_MS` | Analytics timeout; default: 5 seconds |
+| `DEMO_ACCOUNT_ENABLED` | Enables the demo account |
+| `DEMO_ACCOUNT_RESET_INTERVAL_MINUTES` | Restore interval; default: 30 minutes |
 
-### 3. Run tests
+`.env` files are not committed. The repository contains only examples without secrets.
 
-```bash
-cd backend
-npm test
-```
+## Screenshots
 
-### 4. Run Frontend
+### Login
 
-- Open `login.html` in your browser
-or
-- Use **Live Server** in VS Code
+![Login](./media/login.png)
 
----
+### Dashboard
 
-## 📌 Future Improvements
+![Dashboard](./media/dashboard.png)
 
-- 📊 Peer-to-peer transaction transfers between registered users
+### Profile editing
 
----
+![Profile editing](./media/edituser.png)
 
-## 👨‍💻 Author
+### Avatar cropping
 
-Developed by **Ezequiel Borges**
+![Avatar cropping](./media/crop.png)
 
-- GitHub: https://github.com/kiellzz
-- LinkedIn: https://www.linkedin.com/in/ezequielborgesdev
+## Deployment
 
----
-
-## ⭐ Final Notes
-
-This project represents my growth as a developer, focusing on building applications that deliver not only functionality, but also **clarity, usability, and user experience**.
+The frontend is prepared for Vercel, the Node backend for a web service, the database for MongoDB Atlas, and FastAPI for an independent Docker service. In production, keep FastAPI inaccessible to the browser and configure every secret through the hosting provider's environment variables.

@@ -107,6 +107,17 @@ function normalizeProfileImage(profileImage) {
     : "";
 }
 
+function rejectDemoAccountMutation(user, res) {
+  if (!user?.isDemo) {
+    return false;
+  }
+
+  res.status(403).json({
+    message: "A conta de demonstração é somente para leitura"
+  });
+  return true;
+}
+
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, profileImage } = req.body;
@@ -185,7 +196,8 @@ router.post("/login", async (req, res) => {
       message: "Login realizado",
       token,
       name: normalizeName(user.name),
-      profileImage: user.profileImage || ""
+      profileImage: user.profileImage || "",
+      isDemo: Boolean(user.isDemo)
     });
   } catch (error) {
     console.error(error);
@@ -198,7 +210,9 @@ router.post("/login", async (req, res) => {
 
 router.get("/me", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("name email profileImage createdAt");
+    const user = await User.findById(req.userId).select(
+      "name email profileImage createdAt isDemo"
+    );
 
     if (!user) {
       return res.status(404).json({
@@ -210,7 +224,8 @@ router.get("/me", authMiddleware, async (req, res) => {
       name: normalizeName(user.name),
       email: user.email || "",
       createdAt: user.createdAt || null,
-      profileImage: user.profileImage || ""
+      profileImage: user.profileImage || "",
+      isDemo: Boolean(user.isDemo)
     });
   } catch (error) {
     console.error(error);
@@ -241,6 +256,10 @@ router.put("/me", authMiddleware, async (req, res) => {
       });
     }
 
+    if (rejectDemoAccountMutation(user, res)) {
+      return;
+    }
+
     user.name = normalizedName;
     user.profileImage = normalizedProfileImage;
 
@@ -269,6 +288,10 @@ router.put("/me/email", authMiddleware, async (req, res) => {
       return res.status(404).json({
         message: "Usuário não encontrado"
       });
+    }
+
+    if (rejectDemoAccountMutation(user, res)) {
+      return;
     }
 
     const emailValidationMessage = getEmailValidationMessage(
@@ -332,6 +355,10 @@ router.put("/me/password", authMiddleware, async (req, res) => {
       });
     }
 
+    if (rejectDemoAccountMutation(user, res)) {
+      return;
+    }
+
     const passwordMatch = await bcrypt.compare(currentPassword, user.password);
 
     if (!passwordMatch) {
@@ -387,6 +414,10 @@ router.delete("/me", authMiddleware, async (req, res) => {
       return res.status(404).json({
         message: "Usuário não encontrado"
       });
+    }
+
+    if (rejectDemoAccountMutation(user, res)) {
+      return;
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);

@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EZSaldo • Entrar</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261010-1">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
     rel="stylesheet">
 </head>
 
-<body>
+<body class="login-page">
   <video class="bg-video" autoplay muted loop playsinline>
     <source src="assets/background.mp4" type="video/mp4">
     Seu navegador não suporta vídeo em background.
@@ -27,39 +27,103 @@
     <p class="loader-message" role="status">Aviso: Esse processo pode levar um tempo.</p>
   </div>
 
-  <div class="main-logo">
-    <span class="ez">EZ</span><span class="saldo">Saldo</span>
-  </div>
-
-  <div class="container auth-container">
-    <h2>Login</h2>
-
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Email" required>
-
-      <div class="input-group">
-        <input type="password" id="password" placeholder="Senha" required>
-
-        <button type="button" class="toggle-password" aria-label="Mostrar senha" aria-pressed="false">
-          <svg class="eye-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path class="eye-open" d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" stroke="currentColor"
-              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            <circle class="eye-open" cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8" />
-            <path class="eye-closed" d="M3 3l18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            <path class="eye-closed" d="M9.9 4.24A10.94 10.94 0 0 1 12 4c6.5 0 10 6 10 6a16.7 16.7 0 0 1-3.02 3.59"
-              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            <path class="eye-closed" d="M6.61 6.61A16.1 16.1 0 0 0 2 12s3.5 6 10 6a10.4 10.4 0 0 0 4.24-.85"
-              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
+  <main class="login-product-layout">
+    <section class="login-product-copy" aria-labelledby="loginProductTitle">
+      <div class="main-logo" aria-label="EZSaldo">
+        <span class="ez">EZ</span><span class="saldo">Saldo</span>
       </div>
 
-      <button type="submit">Entrar</button>
-      <p id="loginError" class="error-message"></p>
-    </form>
+      <span class="login-product-eyebrow">Controle financeiro inteligente</span>
+      <h1 id="loginProductTitle">Entenda seu dinheiro. Decida com clareza.</h1>
+      <p class="login-product-description">
+        Organize suas transações e transforme seu histórico financeiro em uma visão simples do presente e do futuro.
+      </p>
 
-    <p>Não tem conta? <a href="register.html">Criar conta</a></p>
-  </div>
+      <ul class="login-product-benefits" aria-label="Benefícios do EZSaldo">
+        <li>
+          <span class="login-benefit-icon" aria-hidden="true">↗</span>
+          <div>
+            <strong>Evolução financeira</strong>
+            <small>Acompanhe saldo e movimentações em um único dashboard.</small>
+          </div>
+        </li>
+        <li>
+          <span class="login-benefit-icon" aria-hidden="true">✦</span>
+          <div>
+            <strong>Análises automáticas</strong>
+            <small>Identifique padrões, comparações e gastos atípicos.</small>
+          </div>
+        </li>
+        <li>
+          <span class="login-benefit-icon" aria-hidden="true">▤</span>
+          <div>
+            <strong>Projeção e relatório</strong>
+            <small>Consulte um relatório do mês e exporte em um arquivo PDF.</small>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="login-access-area" aria-label="Acesso ao EZSaldo">
+      <div class="container auth-container">
+        <span class="login-access-eyebrow">Acesse sua conta</span>
+        <h2>Bem-vindo de volta</h2>
+
+        <form id="loginForm">
+          <input type="email" id="email" placeholder="Email" required>
+
+          <div class="input-group">
+            <input type="password" id="password" placeholder="Senha" required>
+
+            <button type="button" class="toggle-password" aria-label="Mostrar senha" aria-pressed="false">
+              <svg class="eye-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <path class="eye-open" d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                <circle class="eye-open" cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8" />
+                <path class="eye-closed" d="M3 3l18 18" stroke="currentColor" stroke-width="1.8"
+                  stroke-linecap="round" />
+                <path class="eye-closed"
+                  d="M9.9 4.24A10.94 10.94 0 0 1 12 4c6.5 0 10 6 10 6a16.7 16.7 0 0 1-3.02 3.59"
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                <path class="eye-closed" d="M6.61 6.61A16.1 16.1 0 0 0 2 12s3.5 6 10 6a10.4 10.4 0 0 0 4.24-.85"
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+          <button type="submit">Entrar no EZSaldo</button>
+          <p id="loginError" class="error-message"></p>
+        </form>
+
+        <aside id="demoAccountCard" class="demo-account-card" aria-labelledby="demoAccountTitle">
+          <div class="demo-account-header">
+            <span class="demo-account-icon" aria-hidden="true">✦</span>
+            <div>
+              <strong id="demoAccountTitle">Experimente antes de entrar</strong>
+            </div>
+          </div>
+
+          <dl class="demo-account-credentials">
+            <div>
+              <dt>E-mail</dt>
+              <dd>demo.ezsaldo@example.test</dd>
+            </div>
+            <div>
+              <dt>Senha</dt>
+              <dd>EZSaldo-Demo-2026</dd>
+            </div>
+          </dl>
+
+          <button id="useDemoAccountBtn" class="demo-account-button" type="button">
+            Usar conta de demonstração
+          </button>
+        </aside>
+
+        <p class="login-register-link">Ainda não usa o EZSaldo? <a href="register.html">Criar minha conta</a></p>
+      </div>
+    </section>
+  </main>
 
   <script src="scripts/auth.js"></script>
 </body>

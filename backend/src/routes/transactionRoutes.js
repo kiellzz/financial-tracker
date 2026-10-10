@@ -3,6 +3,11 @@ const router = express.Router();
 
 const Transaction = require("../models/Transaction");
 const authMiddleware = require("../middleware/authMiddleware");
+const demoAccountReadOnlyMiddleware = require("../middleware/demoAccountReadOnlyMiddleware");
+const {
+  DEFAULT_TRANSACTION_CATEGORY,
+  TRANSACTION_CATEGORIES
+} = require("../constants/transactionCategories");
 const MIN_TRANSACTION_DATE = new Date("2026-01-01T00:00:00.000Z");
 
 function normalizeTransactionDate(rawDate) {
@@ -51,11 +56,28 @@ function isAllowedTransactionAmount(amount) {
   return Number.isFinite(amount) && amount > 0;
 }
 
-router.post("/", authMiddleware, async (req, res) => {
+function normalizeTransactionCategory(rawCategory) {
+  if (rawCategory === undefined || rawCategory === null || rawCategory === "") {
+    return DEFAULT_TRANSACTION_CATEGORY;
+  }
+
+  if (typeof rawCategory !== "string") {
+    return null;
+  }
+
+  const trimmedCategory = rawCategory.trim();
+
+  return TRANSACTION_CATEGORIES.find((category) => (
+    category.localeCompare(trimmedCategory, "pt-BR", { sensitivity: "base" }) === 0
+  )) || null;
+}
+
+router.post("/", authMiddleware, demoAccountReadOnlyMiddleware, async (req, res) => {
   try {
-    const { type, amount, description, date } = req.body;
+    const { type, amount, description, category, date } = req.body;
     const normalizedDate = normalizeTransactionDate(date);
     const normalizedAmount = Number(amount);
+    const normalizedCategory = normalizeTransactionCategory(category);
 
     if (!isAllowedTransactionDate(normalizedDate)) {
       return res.status(400).json({
@@ -69,11 +91,18 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
+    if (!normalizedCategory) {
+      return res.status(400).json({
+        message: "Categoria de transação inválida"
+      });
+    }
+
     const transaction = new Transaction({
       userId: req.userId,
       type,
       amount: normalizedAmount,
       description,
+      category: normalizedCategory,
       date: normalizedDate
     });
 
@@ -124,7 +153,7 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, demoAccountReadOnlyMiddleware, async (req, res) => {
   try {
     const transaction = await Transaction.findOneAndDelete({
       _id: req.params.id,
@@ -147,11 +176,12 @@ router.delete("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/:id", authMiddleware, async (req, res) => {
+router.put("/:id", authMiddleware, demoAccountReadOnlyMiddleware, async (req, res) => {
   try {
-    const { type, amount, description, date } = req.body;
+    const { type, amount, description, category, date } = req.body;
     const normalizedDate = normalizeTransactionDate(date);
     const normalizedAmount = Number(amount);
+    const normalizedCategory = normalizeTransactionCategory(category);
 
     if (!isAllowedTransactionDate(normalizedDate)) {
       return res.status(400).json({
@@ -165,6 +195,12 @@ router.put("/:id", authMiddleware, async (req, res) => {
       });
     }
 
+    if (!normalizedCategory) {
+      return res.status(400).json({
+        message: "Categoria de transação inválida"
+      });
+    }
+
     const transaction = await Transaction.findOneAndUpdate(
       {
         _id: req.params.id,
@@ -174,6 +210,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
         type,
         amount: normalizedAmount,
         description,
+        category: normalizedCategory,
         date: normalizedDate
       },
       { new: true }

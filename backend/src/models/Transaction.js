@@ -1,4 +1,8 @@
 const mongoose = require("mongoose");
+const {
+  DEFAULT_TRANSACTION_CATEGORY,
+  TRANSACTION_CATEGORIES
+} = require("../constants/transactionCategories");
 
 const transactionSchema = new mongoose.Schema({
 
@@ -22,6 +26,12 @@ const transactionSchema = new mongoose.Schema({
   description: {
     type: String,
     default: ""
+  },
+
+  category: {
+    type: String,
+    enum: TRANSACTION_CATEGORIES,
+    default: DEFAULT_TRANSACTION_CATEGORY
   },
 
   date: {

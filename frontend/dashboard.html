@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EZSaldo • Dashboard</title>
-  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="dashboard.css?v=20261010-5">
+  <link rel="stylesheet" href="analytics.css?v=20261010-1">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,6 +88,19 @@
             <small id="charCount">0/40</small>
           </div>
 
+          <select id="transactionCategory" aria-label="Categoria da transação" required>
+            <option value="Alimentação">Alimentação</option>
+            <option value="Moradia">Moradia</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Saúde">Saúde</option>
+            <option value="Educação">Educação</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Assinaturas">Assinaturas</option>
+            <option value="Compras">Compras</option>
+            <option value="Receita">Receita</option>
+            <option value="Outros" selected>Outros</option>
+          </select>
+
           <div class="amount-input-group">
             <input type="number" id="amount" placeholder="Valor (use negativo para gasto)" step="0.01" required>
 
@@ -126,7 +140,7 @@
         <ul id="transactionsList"></ul>
 
         <button id="toggleTransactionsBtn" class="toggle-transactions-btn hidden" type="button">
-          (+) Exibir mais
+          Exibir mais
         </button>
       </section>
     </div>
@@ -158,13 +172,101 @@
 
       <section id="periodResultCard" class="card period-result-card neutral" aria-live="polite">
         <div class="period-result-header">
-          <span class="period-result-label">Resultado do período</span>
+          <div class="period-result-title">
+            <span class="period-result-label">Resultado do período</span>
+            <label id="subtractFirstIncomeControl" class="subtract-first-income hidden">
+              <input id="subtractFirstIncomeCheckbox" type="checkbox">
+              <span>Descontar primeira entrada</span>
+            </label>
+          </div>
           <span id="periodResultRange" class="period-result-range">—</span>
         </div>
 
         <p id="periodResultMessage" class="period-result-message">
           Seu saldo permaneceu igual
         </p>
+      </section>
+
+      <section class="card analytics-card" aria-labelledby="analyticsTitle">
+        <div class="analytics-header">
+          <div>
+            <h3 id="analyticsTitle">Análise financeira</h3>
+            <p id="analyticsReferenceMonth" class="analytics-reference">Mês de referência: —</p>
+          </div>
+          <span class="analytics-estimate-badge"></span>
+        </div>
+
+        <div id="analyticsLoading" class="analytics-state" role="status">
+          <span class="analytics-spinner" aria-hidden="true"></span>
+          <p>Calculando sua análise...</p>
+        </div>
+
+        <div id="analyticsError" class="analytics-state analytics-state-error hidden" role="alert">
+          <p id="analyticsErrorMessage">Não foi possível carregar a análise.</p>
+          <button id="retryAnalyticsBtn" type="button">Tentar novamente</button>
+        </div>
+
+        <div id="analyticsEmpty" class="analytics-state hidden">
+          <p>Adicione transações para gerar sua análise financeira.</p>
+        </div>
+
+        <div id="analyticsContent" class="analytics-content hidden">
+          <div class="analytics-chart-grid">
+            <article class="analytics-panel">
+              <h4>Gastos por categoria</h4>
+              <p class="analytics-panel-caption">Distribuição no mês de referência</p>
+              <div id="categoryChartWrapper" class="analytics-chart-wrapper">
+                <canvas id="categoryExpensesChart"></canvas>
+              </div>
+              <p id="categoryChartEmpty" class="analytics-inline-empty hidden">
+                Nenhuma despesa neste mês.
+              </p>
+            </article>
+
+            <article class="analytics-panel">
+              <h4>Evolução mensal</h4>
+              <p class="analytics-panel-caption">Receitas e despesas por mês</p>
+              <div class="analytics-chart-wrapper">
+                <canvas id="monthlyEvolutionChart"></canvas>
+              </div>
+            </article>
+          </div>
+
+          <div class="analytics-section-heading">
+            <h4>Comparação com o mês anterior</h4>
+          </div>
+          <div id="comparisonCards" class="comparison-grid"></div>
+
+          <div class="analytics-detail-grid">
+            <article class="analytics-panel">
+              <h4>Gastos atípicos</h4>
+              <p class="analytics-panel-caption">Valores acima do padrão da categoria</p>
+              <ul id="outlierList" class="outlier-list"></ul>
+            </article>
+
+            <article class="analytics-panel projection-panel">
+              <span class="projection-label">Saldo estimado para o próximo mês</span>
+              <strong id="projectionValue" class="projection-value">Indisponível</strong>
+              <p id="projectionMethod" class="projection-method">
+                Estimativa por média móvel dos últimos 3 meses completos.
+              </p>
+              <p id="projectionWarning" class="projection-warning hidden"></p>
+              <small>Esta projeção é apenas uma estimativa e não garante resultados futuros.</small>
+            </article>
+          </div>
+
+          <div class="report-export">
+            <div>
+              <h4>Relatório mensal</h4>
+              <p>Exporte somente as transações do período escolhido.</p>
+            </div>
+            <div class="report-controls">
+              <input id="reportMonth" type="month" min="2026-01" aria-label="Mês do relatório">
+              <button class="report-download-btn primary" data-format="pdf" type="button">Gerar PDF</button>
+            </div>
+          </div>
+          <p id="reportFeedback" class="report-feedback hidden" role="status"></p>
+        </div>
       </section>
     </div>
 
@@ -194,15 +296,40 @@
     </div>
   </div>
 
+  <!-- MODAL DE PRÉVIA DO PDF -->
+  <div id="pdfPreviewModal" class="modal pdf-preview-modal hidden" role="dialog" aria-modal="true"
+    aria-labelledby="pdfPreviewTitle">
+    <div class="pdf-preview-content">
+      <div class="pdf-preview-header">
+        <div>
+          <span class="pdf-preview-eyebrow">Relatório mensal</span>
+          <h3 id="pdfPreviewTitle">Prévia do PDF</h3>
+        </div>
+        <button id="closePdfPreviewBtn" class="pdf-preview-close" type="button" aria-label="Fechar prévia"
+          title="Fechar prévia">&times;</button>
+      </div>
+
+      <div class="pdf-preview-frame-wrapper">
+        <iframe id="pdfPreviewFrame" title="Prévia do relatório mensal em PDF"></iframe>
+      </div>
+
+      <div class="pdf-preview-actions">
+        <button id="cancelPdfPreviewBtn" class="pdf-preview-cancel" type="button">Fechar</button>
+        <button id="downloadPreviewedPdfBtn" class="pdf-preview-download" type="button">Baixar PDF</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="scripts/config.js"></script>
   <script src="scripts/formatters.js"></script>
   <script src="scripts/dateUtils.js"></script>
   <script src="scripts/dashboardApi.js"></script>
-  <script src="scripts/chartData.js"></script>
+  <script src="scripts/chartData.js?v=20261010-1"></script>
   <script src="scripts/balanceChart.js"></script>
-  <script src="scripts/dashboardDom.js"></script>
-  <script src="scripts/dashboard.js"></script>
+  <script src="scripts/analyticsCharts.js"></script>
+  <script src="scripts/dashboardDom.js?v=20261010-2"></script>
+  <script src="scripts/dashboard.js?v=20261010-3"></script>
 
 </body>
 

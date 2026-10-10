@@ -102,6 +102,90 @@ a:hover {
   text-decoration: underline;
 }
 
+.demo-account-card {
+  margin-top: 18px;
+  padding: 15px;
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 10px;
+  background: rgba(14, 165, 233, 0.07);
+  text-align: left;
+}
+
+.demo-account-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.demo-account-header > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.demo-account-header strong {
+  color: #e8f5ff;
+  font-size: 0.88rem;
+}
+
+.demo-account-header small {
+  color: #7f9ab8;
+  font-size: 0.7rem;
+}
+
+.demo-account-icon {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(56, 189, 248, 0.13);
+  color: #38bdf8;
+}
+
+.demo-account-credentials {
+  margin: 13px 0;
+  display: grid;
+  gap: 8px;
+}
+
+.demo-account-credentials > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+}
+
+.demo-account-credentials dt {
+  color: #7f9ab8;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.demo-account-credentials dd {
+  overflow-wrap: anywhere;
+  color: #cdeafa;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.74rem;
+}
+
+.demo-account-button {
+  padding: 9px 11px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: rgba(56, 189, 248, 0.09);
+  color: #bfe9ff;
+  box-shadow: none;
+  font-size: 0.78rem;
+}
+
+.demo-account-button:hover {
+  background: rgba(56, 189, 248, 0.16);
+  box-shadow: 0 8px 18px rgba(56, 189, 248, 0.12);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -902,4 +986,240 @@ a:hover {
 
 .main-logo {
   font-size: clamp(2.8rem, 14vw, 7rem);
+}
+
+/* LOGIN COMO PRODUTO */
+.login-page {
+  min-height: 100vh;
+  padding: clamp(24px, 4vw, 64px);
+  overflow-x: hidden;
+}
+
+.login-page .bg-overlay {
+  background:
+    radial-gradient(circle at 22% 38%, rgba(14, 165, 233, 0.13), transparent 34%),
+    linear-gradient(90deg, rgba(2, 6, 23, 0.72), rgba(2, 6, 23, 0.46) 52%, rgba(2, 6, 23, 0.72));
+}
+
+.login-product-layout {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 390px);
+  align-items: center;
+  gap: clamp(54px, 8vw, 120px);
+}
+
+.login-product-copy {
+  max-width: 680px;
+  animation: fadeIn 0.55s ease-in-out;
+}
+
+.login-product-copy .main-logo {
+  margin: 0 0 34px;
+  font-size: clamp(3.4rem, 6.2vw, 5.8rem);
+  line-height: 0.95;
+}
+
+.login-product-eyebrow,
+.login-access-eyebrow {
+  color: #38bdf8;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.login-product-copy h1 {
+  max-width: 650px;
+  margin-top: 14px;
+  color: #f5f9ff;
+  font-size: clamp(2.35rem, 4vw, 4.3rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.login-product-description {
+  max-width: 610px;
+  margin-top: 20px;
+  color: #aebdd2;
+  font-size: clamp(0.98rem, 1.3vw, 1.12rem);
+  line-height: 1.7;
+  text-align: left;
+}
+
+.login-product-benefits {
+  max-width: 650px;
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  list-style: none;
+}
+
+.login-product-benefits li {
+  min-width: 0;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(8, 18, 36, 0.58);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.login-benefit-icon {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #69d1ff;
+  background: rgba(56, 189, 248, 0.12);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.login-product-benefits div {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.login-product-benefits strong {
+  color: #edf6ff;
+  font-size: 0.79rem;
+}
+
+.login-product-benefits small {
+  color: #8295af;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.login-access-area {
+  width: 100%;
+}
+
+.login-page .auth-container {
+  width: 100%;
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(24, 39, 65, 0.95), rgba(8, 17, 34, 0.9)),
+    #081122;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.48);
+}
+
+.login-page .auth-container h2 {
+  margin: 6px 0 24px;
+  color: #f2f8ff;
+  font-size: 1.65rem;
+  text-align: left;
+}
+
+.login-page .auth-container input {
+  height: 48px;
+  border-radius: 10px;
+}
+
+.login-page .auth-container form > button[type="submit"] {
+  min-height: 48px;
+}
+
+.login-page .demo-account-card {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.login-page .demo-account-header strong {
+  font-size: 0.82rem;
+}
+
+.login-page .login-register-link {
+  margin-top: 20px;
+  color: #92a3ba;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 900px) {
+  .login-page {
+    justify-content: flex-start;
+  }
+
+  .login-product-layout {
+    grid-template-columns: 1fr;
+    gap: 38px;
+  }
+
+  .login-product-copy {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .login-product-copy .main-logo {
+    margin-bottom: 26px;
+  }
+
+  .login-product-copy h1,
+  .login-product-description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .login-product-description {
+    text-align: center;
+  }
+
+  .login-access-area {
+    max-width: 430px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .login-page {
+    padding: 28px 16px 36px;
+  }
+
+  .login-product-layout {
+    gap: 28px;
+  }
+
+  .login-product-copy .main-logo {
+    margin-bottom: 20px;
+    font-size: clamp(2.8rem, 18vw, 4rem);
+  }
+
+  .login-product-copy h1 {
+    font-size: clamp(2rem, 10vw, 2.8rem);
+  }
+
+  .login-product-description {
+    margin-top: 15px;
+    font-size: 0.92rem;
+  }
+
+  .login-product-benefits {
+    margin-top: 24px;
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .login-product-benefits li {
+    padding: 13px;
+  }
+
+  .login-page .auth-container {
+    padding: 26px 20px;
+  }
 }

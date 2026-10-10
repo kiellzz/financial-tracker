@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EZSaldo • Transações</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="transactions.css?v=20261010-2">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Orbitron:wght@500;700&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <div id="transactionsLoader" class="loader hidden">
+    <div class="spinner"></div>
+    <p class="loader-message" role="status">Carregando suas transações...</p>
+  </div>
+
+  <video autoplay muted loop playsinline class="bg-video">
+    <source src="./assets/bg.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+
+  <header class="transactions-header">
+    <a class="back-link" href="dashboard.html" aria-label="Voltar ao dashboard" title="Voltar ao dashboard">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      <span>Dashboard</span>
+    </a>
+
+    <div class="logo-header">
+      <span class="ez">EZ</span><span class="saldo">Saldo</span>
+    </div>
+
+    <button id="logoutBtn" class="logout-btn" type="button" aria-label="Sair" title="Sair">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5v-2H5V5h5V3z" />
+        <path d="M13 7l5 5-5 5v-3H9v-4h4V7z" />
+      </svg>
+    </button>
+  </header>
+
+  <main class="transactions-page">
+    <section class="transactions-page-heading">
+      <div>
+        <span class="transactions-eyebrow">Histórico financeiro</span>
+        <h1>Todas as transações</h1>
+        <p>Consulte entradas e saídas usando os filtros abaixo.</p>
+      </div>
+      <strong id="resultsCount" class="results-count" aria-live="polite">—</strong>
+    </section>
+
+    <section class="card transactions-filter-card" aria-labelledby="filterTitle">
+      <div class="filter-card-heading">
+        <div>
+          <h2 id="filterTitle">Filtros</h2>
+          <p>As datas inicial e final são inclusivas.</p>
+        </div>
+      </div>
+
+      <form id="transactionsFilterForm" class="transactions-filter-form">
+        <label class="filter-field">
+          <span>Data inicial</span>
+          <input id="dateFromFilter" type="date">
+        </label>
+
+        <label class="filter-field">
+          <span>Data final</span>
+          <input id="dateToFilter" type="date">
+        </label>
+
+        <label class="filter-field">
+          <span>Tipo</span>
+          <select id="typeFilter">
+            <option value="all">Todos</option>
+            <option value="income">Entradas</option>
+            <option value="expense">Saídas</option>
+          </select>
+        </label>
+
+        <label class="filter-field">
+          <span>Valor mínimo</span>
+          <input id="minValueFilter" type="number" min="0" step="0.01" placeholder="R$ 0,00">
+        </label>
+
+        <label class="filter-field">
+          <span>Valor máximo</span>
+          <input id="maxValueFilter" type="number" min="0" step="0.01" placeholder="Sem limite">
+        </label>
+
+        <div class="filter-actions">
+          <button class="filter-submit-btn" type="submit">Aplicar filtros</button>
+          <button id="clearFiltersBtn" class="filter-clear-btn" type="button">Limpar</button>
+        </div>
+      </form>
+
+      <p id="filterFeedback" class="filter-feedback hidden" role="alert"></p>
+    </section>
+
+    <section class="card transactions-results-card" aria-labelledby="transactionsTitle">
+      <div class="results-heading">
+        <div>
+          <h2 id="transactionsTitle">Transações</h2>
+          <p id="resultsDescription">Ordenadas da mais recente para a mais antiga.</p>
+        </div>
+      </div>
+
+      <div id="transactionsError" class="transactions-page-state hidden" role="alert">
+        <p id="transactionsErrorMessage">Não foi possível carregar as transações.</p>
+        <button id="retryTransactionsBtn" type="button">Tentar novamente</button>
+      </div>
+
+      <ul id="transactionsPageList" class="transactions-page-list"></ul>
+    </section>
+  </main>
+
+  <div id="logoutModal" class="modal hidden">
+    <div class="modal-content">
+      <p>Tem certeza que deseja fazer o logout?</p>
+      <div class="modal-actions">
+        <button id="confirmLogout">Sim</button>
+        <button id="cancelLogout">Não</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/formatters.js"></script>
+  <script src="scripts/dateUtils.js"></script>
+  <script src="scripts/dashboardApi.js"></script>
+  <script src="scripts/transactionsPage.js"></script>
+</body>
+
+</html>

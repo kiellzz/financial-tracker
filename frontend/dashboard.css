@@ -422,7 +422,8 @@ body {
   pointer-events: none;
 }
 
-#transactionForm input {
+#transactionForm input,
+#transactionForm select {
   width: 100%;
   height: 52px;
   border-radius: 12px;
@@ -434,6 +435,16 @@ body {
   outline: none;
   transition: 0.25s ease;
   font-family: inherit;
+}
+
+#transactionForm select {
+  cursor: pointer;
+  color-scheme: dark;
+}
+
+#transactionForm select option {
+  background: #071225;
+  color: #eaf2ff;
 }
 
 #description {
@@ -520,7 +531,8 @@ body {
   color: #7f8da7;
 }
 
-#transactionForm input:focus {
+#transactionForm input:focus,
+#transactionForm select:focus {
   border-color: rgba(53, 194, 255, 0.55);
   box-shadow: 0 0 0 3px rgba(53, 194, 255, 0.1);
 }
@@ -677,6 +689,32 @@ button:active {
   gap: 14px;
 }
 
+.period-result-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.subtract-first-income {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #c8d8ed;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.subtract-first-income input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
 .period-result-label {
   color: #8fa3c7;
   font-size: 0.78rem;
@@ -714,6 +752,14 @@ button:active {
 /* ─── TRANSAÇÕES ──────────────────────────────────────────────── */
 .transactions-card {
   min-height: 220px;
+}
+
+/* No desktop, completa a coluna esquerda para alinhar sua borda inferior
+   com o card de análise financeira da coluna direita. */
+@media (min-width: 1101px) {
+  .transactions-card {
+    flex: 1 1 0;
+  }
 }
 
 #transactionsList {
@@ -964,6 +1010,102 @@ button:active {
 
 .modal-actions button:hover {
   transform: translateY(-2px);
+}
+
+.pdf-preview-modal {
+  z-index: 80;
+}
+
+.pdf-preview-content {
+  width: min(1100px, 100%);
+  height: min(88vh, 820px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgba(53, 194, 255, 0.18);
+  border-radius: 18px;
+  background: #091326;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58);
+}
+
+.pdf-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.pdf-preview-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pdf-preview-header h3 {
+  color: #f4f8ff;
+  font-size: 1.25rem;
+}
+
+.pdf-preview-close {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #dce9fa;
+  background: rgba(255, 255, 255, 0.04);
+  font: inherit;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pdf-preview-frame-wrapper {
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: #eef2f7;
+}
+
+#pdfPreviewFrame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #eef2f7;
+}
+
+.pdf-preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pdf-preview-actions button {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pdf-preview-cancel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #d2deef;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pdf-preview-download {
+  border: 1px solid rgba(53, 194, 255, 0.32);
+  color: #06111f;
+  background: linear-gradient(90deg, #26b8ff, #58caff);
 }
 
 /* ─── LOADER ──────────────────────────────────────────────────── */
@@ -1294,7 +1436,8 @@ button:active {
   }
 
   /* Inputs mobile: altura mínima de toque 48px */
-  #transactionForm input {
+  #transactionForm input,
+  #transactionForm select {
     height: 50px;
     font-size: 1rem;
     border-radius: 11px;
@@ -1340,6 +1483,10 @@ button:active {
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .period-result-title {
+    flex-wrap: wrap;
   }
 
   .period-result-range {

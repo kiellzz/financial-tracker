@@ -2,7 +2,12 @@
 // CONFIG
 // ==============================
 
-const API_URL = "https://ezsaldo-backend.onrender.com/api/auth";
+const IS_LOCAL_ENVIRONMENT = ["localhost", "127.0.0.1"].includes(
+  window.location.hostname
+);
+const API_URL = IS_LOCAL_ENVIRONMENT
+  ? "http://localhost:5000/api/auth"
+  : "https://ezsaldo-backend.onrender.com/api/auth";
 const USER_PROFILE_IMAGE_STORAGE_KEY = "userProfileImage";
 const NAME_LOCALE = "pt-BR";
 const MIN_PASSWORD_LENGTH = 6;
@@ -155,6 +160,29 @@ if (loginForm) {
       hideLoader();
       setMessage(errorText, "Erro de conexão com servidor");
     }
+  });
+}
+
+const demoAccountCard = document.getElementById("demoAccountCard");
+const useDemoAccountBtn = document.getElementById("useDemoAccountBtn");
+
+if (demoAccountCard) {
+  useDemoAccountBtn?.addEventListener("click", () => {
+    const emailInput = document.getElementById("email");
+    const loginPasswordInput = document.getElementById("password");
+
+    if (emailInput) {
+      emailInput.value = "demo.ezsaldo@example.test";
+      resetInputBorder(emailInput);
+    }
+
+    if (loginPasswordInput) {
+      loginPasswordInput.value = "EZSaldo-Demo-2026";
+      resetInputBorder(loginPasswordInput);
+    }
+
+    setMessage(document.getElementById("loginError"));
+    loginForm?.querySelector('button[type="submit"]')?.focus();
   });
 }
 

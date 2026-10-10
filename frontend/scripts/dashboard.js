@@ -4,6 +4,7 @@
   const formatters = window.EZSaldoFormatters;
   const chartData = window.EZSaldoChartData;
   const balanceChart = window.EZSaldoBalanceChart;
+  const analyticsCharts = window.EZSaldoAnalyticsCharts;
 
   const {
     DEFAULT_AVATAR_SRC,
@@ -26,11 +27,17 @@
   const state = {
     editingId: null,
     transactionToDelete: null,
-    showAllTransactions: false,
     allTransactions: [],
     chartRange: DEFAULT_CHART_RANGE,
     accountCreatedAt: null,
-    toastTimeoutId: null
+    subtractFirstIncome: false,
+    toastTimeoutId: null,
+    analyticsRequestId: 0,
+    transactionPreviewFrameId: null,
+    transactionPreviewCardHeight: 0,
+    transactionPreviewResizeObserver: null,
+    reportPreviewUrl: null,
+    reportPreviewFileName: ""
   };
 
   function showLoader() {
@@ -198,6 +205,10 @@
     state.editingId = null;
     clearFormFeedback();
 
+    if (elements.categoryInput) {
+      elements.categoryInput.value = "Outros";
+    }
+
     if (elements.charCount) {
       elements.charCount.textContent = `0/${MAX_DESCRIPTION_LENGTH}`;
     }
@@ -285,12 +296,6 @@
     return `${signal} ${formatters.formatCurrency(amount)}`;
   }
 
-  function getVisibleTransactions(transactions = []) {
-    return state.showAllTransactions
-      ? transactions
-      : transactions.slice(0, 3);
-  }
-
   function updateToggleTransactionsButton(totalTransactions) {
     if (!elements.toggleTransactionsBtn) return;
 
@@ -300,9 +305,7 @@
     }
 
     elements.toggleTransactionsBtn.classList.remove("hidden");
-    elements.toggleTransactionsBtn.textContent = state.showAllTransactions
-      ? "(-) Mostrar menos"
-      : "(+) Exibir mais";
+    elements.toggleTransactionsBtn.textContent = "(+) Exibir mais";
   }
 
   function updateChartFilterButtons() {
@@ -363,6 +366,55 @@
     return "Seu saldo permaneceu igual";
   }
 
+  function getFirstIncomeAmount() {
+    const firstIncome = state.allTransactions
+      .filter((transaction) => transaction.type === "income")
+      .map((transaction) => ({
+        amount: Number(transaction.amount) || 0,
+        dateKey: dateUtils.getTransactionDateKey(transaction.date)
+      }))
+      .filter((transaction) => transaction.dateKey)
+      .sort((a, b) => a.dateKey.localeCompare(b.dateKey))[0];
+
+    return firstIncome?.amount || 0;
+  }
+
+  function getDisplayedPeriodResult(periodResult = null) {
+    if (
+      !periodResult ||
+      state.chartRange !== "account" ||
+      !state.subtractFirstIncome
+    ) {
+      return periodResult;
+    }
+
+    const changeAmount = (Number(periodResult.changeAmount) || 0)
+      - getFirstIncomeAmount();
+
+    return {
+      ...periodResult,
+      changeAmount,
+      tone: changeAmount > 0
+        ? "positive"
+        : changeAmount < 0
+          ? "negative"
+          : "neutral"
+    };
+  }
+
+  function updateSubtractFirstIncomeControl() {
+    const isAccountRange = state.chartRange === "account";
+
+    elements.subtractFirstIncomeControl?.classList.toggle(
+      "hidden",
+      !isAccountRange
+    );
+
+    if (elements.subtractFirstIncomeCheckbox) {
+      elements.subtractFirstIncomeCheckbox.checked = state.subtractFirstIncome;
+    }
+  }
+
   function updatePeriodResult(periodResult = null) {
     if (!elements.periodResultCard || !elements.periodResultMessage) return;
 
@@ -378,6 +430,293 @@
     }
 
     elements.periodResultMessage.textContent = getPeriodResultMessage(periodResult);
+  }
+
+  function setAnalyticsView(view, errorMessage = "") {
+    const views = {
+      loading: elements.analyticsLoading,
+      error: elements.analyticsError,
+      empty: elements.analyticsEmpty,
+      content: elements.analyticsContent
+    };
+
+    Object.entries(views).forEach(([name, element]) => {
+      element?.classList.toggle("hidden", name !== view);
+    });
+
+    if (elements.analyticsErrorMessage && errorMessage) {
+      elements.analyticsErrorMessage.textContent = errorMessage;
+    }
+  }
+
+  function formatReferenceMonth(monthKey) {
+    if (!/^\d{4}-\d{2}$/.test(monthKey || "")) return "—";
+
+    const [year, month] = monthKey.split("-").map(Number);
+    return new Date(year, month - 1, 1).toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric"
+    });
+  }
+
+  function renderComparisons(comparisons = []) {
+    if (!elements.comparisonCards) return;
+
+    elements.comparisonCards.innerHTML = "";
+
+    if (!comparisons.length) {
+      elements.comparisonCards.appendChild(createElement(
+        "p",
+        "analytics-inline-empty",
+        "Ainda não há dois meses com despesas para comparar."
+      ));
+      return;
+    }
+
+    comparisons.forEach((comparison) => {
+      const card = createElement(
+        "article",
+        `comparison-card ${comparison.trend || "stable"}`
+      );
+      const header = createElement("div", "comparison-card-header");
+      const category = createElement("span", "comparison-category", comparison.category);
+      let changeLabel = "0,0%";
+
+      if (comparison.trend === "new_category") {
+        changeLabel = "Nova categoria";
+      } else if (Number.isFinite(Number(comparison.percentage_change))) {
+        const percentage = Number(comparison.percentage_change);
+        const signal = percentage > 0 ? "+" : "";
+        changeLabel = `${signal}${percentage.toLocaleString("pt-BR", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1
+        })}%`;
+      }
+
+      const change = createElement("strong", "comparison-change", changeLabel);
+      const message = createElement("p", "comparison-message", comparison.message);
+
+      header.append(category, change);
+      card.append(header, message);
+      elements.comparisonCards.appendChild(card);
+    });
+  }
+
+  function renderOutliers(outliers = []) {
+    if (!elements.outlierList) return;
+
+    elements.outlierList.innerHTML = "";
+
+    if (!outliers.length) {
+      elements.outlierList.appendChild(createElement(
+        "li",
+        "analytics-inline-empty",
+        "Nenhum gasto atípico foi detectado com os dados disponíveis."
+      ));
+      return;
+    }
+
+    outliers.forEach((outlier) => {
+      const item = createElement("li", "outlier-item");
+      const details = createElement("div", "outlier-details");
+      const title = createElement(
+        "strong",
+        "outlier-title",
+        outlier.description || "Gasto sem descrição"
+      );
+      const dateKey = dateUtils.getTransactionDateKey(outlier.date);
+      const meta = createElement(
+        "span",
+        "outlier-meta",
+        `${outlier.category} • ${dateUtils.formatDateKeyBR(dateKey) || "Data indisponível"}`
+      );
+      const amount = createElement(
+        "strong",
+        "outlier-amount",
+        formatters.formatCurrency(outlier.amount)
+      );
+
+      details.append(title, meta);
+      item.append(details, amount);
+      elements.outlierList.appendChild(item);
+    });
+  }
+
+  function renderProjection(projection = {}) {
+    if (!elements.projectionValue) return;
+
+    elements.projectionValue.classList.remove("positive", "negative", "neutral");
+
+    if (projection.value === null || projection.value === undefined) {
+      elements.projectionValue.textContent = "Indisponível";
+      elements.projectionValue.classList.add("neutral");
+    } else {
+      const value = Number(projection.value) || 0;
+      elements.projectionValue.textContent = formatters.formatCurrency(value);
+      elements.projectionValue.classList.add(
+        value > 0 ? "positive" : value < 0 ? "negative" : "neutral"
+      );
+    }
+
+    if (elements.projectionMethod) {
+      elements.projectionMethod.textContent =
+        "Estimativa por média móvel dos últimos 3 meses completos.";
+    }
+
+    if (elements.projectionWarning) {
+      elements.projectionWarning.textContent = projection.warning || "";
+      elements.projectionWarning.classList.toggle("hidden", !projection.warning);
+    }
+  }
+
+  function renderAnalytics(data = {}) {
+    const monthlyEvolution = Array.isArray(data.monthly_evolution)
+      ? data.monthly_evolution
+      : [];
+
+    if (!monthlyEvolution.length) {
+      analyticsCharts.destroy();
+      setAnalyticsView("empty");
+      return;
+    }
+
+    const categorySpending = Array.isArray(data.category_spending)
+      ? data.category_spending
+      : [];
+    const referenceMonth = data.reference_month || "";
+
+    setAnalyticsView("content");
+
+    if (elements.analyticsReferenceMonth) {
+      elements.analyticsReferenceMonth.textContent =
+        `Mês de referência: ${formatReferenceMonth(referenceMonth)}`;
+    }
+
+    elements.categoryChartWrapper?.classList.toggle(
+      "hidden",
+      !categorySpending.length
+    );
+    elements.categoryChartEmpty?.classList.toggle(
+      "hidden",
+      Boolean(categorySpending.length)
+    );
+
+    analyticsCharts.renderCategorySpending(categorySpending);
+    analyticsCharts.renderMonthlyEvolution(monthlyEvolution);
+    renderComparisons(data.category_comparisons || []);
+    renderOutliers(data.outliers || []);
+    renderProjection(data.projection || {});
+
+    if (elements.reportMonth && !elements.reportMonth.value) {
+      elements.reportMonth.value = referenceMonth;
+    }
+  }
+
+  async function loadAnalytics() {
+    const requestId = ++state.analyticsRequestId;
+
+    if (!state.allTransactions.length) {
+      analyticsCharts.destroy();
+      setAnalyticsView("empty");
+      scheduleTransactionPreviewRender();
+      return;
+    }
+
+    setAnalyticsView("loading");
+
+    try {
+      const data = await api.getAnalyticsSummary();
+
+      if (requestId !== state.analyticsRequestId) return;
+      renderAnalytics(data);
+    } catch (error) {
+      if (requestId !== state.analyticsRequestId) return;
+
+      console.error("Erro ao carregar analise financeira:", error);
+      analyticsCharts.destroy();
+      setAnalyticsView(
+        "error",
+        error.message || "Não foi possível carregar a análise financeira."
+      );
+    } finally {
+      if (requestId === state.analyticsRequestId) {
+        scheduleTransactionPreviewRender();
+      }
+    }
+  }
+
+  function showReportFeedback(message, type = "info") {
+    if (!elements.reportFeedback) return;
+
+    elements.reportFeedback.textContent = message;
+    elements.reportFeedback.classList.remove("hidden", "error", "success", "info");
+    elements.reportFeedback.classList.add(type);
+  }
+
+  function closePdfPreview() {
+    elements.pdfPreviewModal?.classList.add("hidden");
+
+    if (elements.pdfPreviewFrame) {
+      elements.pdfPreviewFrame.removeAttribute("src");
+    }
+
+    if (state.reportPreviewUrl) {
+      URL.revokeObjectURL(state.reportPreviewUrl);
+    }
+
+    state.reportPreviewUrl = null;
+    state.reportPreviewFileName = "";
+  }
+
+  function openPdfPreview(reportBlob, month) {
+    closePdfPreview();
+
+    state.reportPreviewUrl = URL.createObjectURL(reportBlob);
+    state.reportPreviewFileName = `ezsaldo-relatorio-${month}.pdf`;
+
+    if (elements.pdfPreviewFrame) {
+      elements.pdfPreviewFrame.src = state.reportPreviewUrl;
+    }
+
+    elements.pdfPreviewModal?.classList.remove("hidden");
+    elements.closePdfPreviewBtn?.focus();
+  }
+
+  function downloadPreviewedPdf() {
+    if (!state.reportPreviewUrl || !state.reportPreviewFileName) return;
+
+    const link = document.createElement("a");
+    link.href = state.reportPreviewUrl;
+    link.download = state.reportPreviewFileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    showReportFeedback("Relatório baixado com sucesso.", "success");
+  }
+
+  async function previewReport(button) {
+    const month = elements.reportMonth?.value;
+    const format = button?.dataset.format;
+
+    if (!month || !format) {
+      showReportFeedback("Escolha o mês do relatório.", "error");
+      return;
+    }
+
+    button.disabled = true;
+    showReportFeedback("Preparando o relatório...", "info");
+
+    try {
+      const reportBlob = await api.downloadMonthlyReport(month, format);
+      openPdfPreview(reportBlob, month);
+      showReportFeedback("Prévia do relatório pronta.", "success");
+    } catch (error) {
+      console.error("Erro ao exportar relatorio:", error);
+      showReportFeedback(error.message || "Erro ao exportar o relatório.", "error");
+    } finally {
+      button.disabled = false;
+    }
   }
 
   function createElement(tagName, className, textContent = "") {
@@ -397,6 +736,7 @@
   function createTransactionItem(transaction) {
     const amountClass = getTransactionAmountClass(transaction.type);
     const typeLabel = transaction.type === "expense" ? "Sa\u00edda" : "Entrada";
+    const categoryLabel = transaction.category || "Outros";
     const iconSymbol = transaction.type === "expense" ? "\u2198" : "\u2197";
 
     const item = createElement("li", "transaction-item");
@@ -411,7 +751,7 @@
     const subtitle = createElement(
       "span",
       `transaction-subtitle ${amountClass}`,
-      typeLabel
+      `${typeLabel} \u2022 ${categoryLabel}`
     );
     const right = createElement("div", "transaction-right");
     const value = createElement(
@@ -460,11 +800,72 @@
       return;
     }
 
-    getVisibleTransactions(transactions).forEach((transaction) => {
-      elements.list.appendChild(createTransactionItem(transaction));
-    });
-
     updateToggleTransactionsButton(transactions.length);
+
+    const isDesktop = window.matchMedia("(min-width: 1101px)").matches;
+
+    if (!isDesktop) {
+      transactions.slice(0, 3).forEach((transaction) => {
+        elements.list.appendChild(createTransactionItem(transaction));
+      });
+      return;
+    }
+
+    const transactionsCard = elements.list.closest(".transactions-card");
+    const cardStyles = transactionsCard
+      ? window.getComputedStyle(transactionsCard)
+      : null;
+    const cardBottom = transactionsCard && cardStyles
+      ? transactionsCard.getBoundingClientRect().bottom -
+        (parseFloat(cardStyles.paddingBottom) || 0)
+      : Number.POSITIVE_INFINITY;
+
+    for (const transaction of transactions) {
+      const item = createTransactionItem(transaction);
+      elements.list.appendChild(item);
+
+      const contentBottom = elements.toggleTransactionsBtn?.classList.contains("hidden")
+        ? elements.list.getBoundingClientRect().bottom
+        : elements.toggleTransactionsBtn.getBoundingClientRect().bottom;
+
+      if (contentBottom > cardBottom + 0.5 && elements.list.children.length > 1) {
+        item.remove();
+        break;
+      }
+    }
+  }
+
+  function scheduleTransactionPreviewRender() {
+    if (state.transactionPreviewFrameId) {
+      window.cancelAnimationFrame(state.transactionPreviewFrameId);
+    }
+
+    state.transactionPreviewFrameId = window.requestAnimationFrame(() => {
+      state.transactionPreviewFrameId = window.requestAnimationFrame(() => {
+        state.transactionPreviewFrameId = null;
+        renderTransactions(state.allTransactions);
+      });
+    });
+  }
+
+  function setupTransactionPreviewResizeObserver() {
+    if (!window.ResizeObserver || !elements.list) return;
+
+    const transactionsCard = elements.list.closest(".transactions-card");
+    if (!transactionsCard) return;
+
+    state.transactionPreviewResizeObserver = new ResizeObserver((entries) => {
+      const cardEntry = entries[0];
+      const nextHeight = Math.round(cardEntry?.contentRect.height || 0);
+
+      if (!nextHeight || nextHeight === state.transactionPreviewCardHeight) {
+        return;
+      }
+
+      state.transactionPreviewCardHeight = nextHeight;
+      scheduleTransactionPreviewRender();
+    });
+    state.transactionPreviewResizeObserver.observe(transactionsCard);
   }
 
   function renderDashboardData() {
@@ -480,7 +881,8 @@
 
     balanceChart.render(series);
     updateChartPeriod(series.period);
-    updatePeriodResult(series.periodResult);
+    updatePeriodResult(getDisplayedPeriodResult(series.periodResult));
+    updateSubtractFirstIncomeControl();
     updateChartFilterButtons();
   }
 
@@ -515,6 +917,7 @@
 
       setBalanceStyle(data.balance);
       renderDashboardData();
+      loadAnalytics();
     } catch (error) {
       console.error("Erro ao carregar transacoes:", error);
       showToast(error.message || "Erro ao carregar transa\u00e7\u00f5es");
@@ -528,6 +931,7 @@
     clearFormFeedback();
 
     const description = elements.descriptionInput?.value.trim() || "";
+    const category = elements.categoryInput?.value || "Outros";
     const amountValue = parseFloat(elements.amountInput?.value);
     const selectedDate = getSelectedTransactionDateKey();
 
@@ -550,6 +954,7 @@
       type: amountValue < 0 ? "expense" : "income",
       amount: Math.abs(amountValue),
       description,
+      category,
       date: selectedDate || null
     };
 
@@ -587,6 +992,14 @@
 
     if (elements.descriptionInput) {
       elements.descriptionInput.value = transaction.description || "";
+    }
+
+    if (elements.categoryInput) {
+      elements.categoryInput.value = transaction.category || "Outros";
+
+      if (!elements.categoryInput.value) {
+        elements.categoryInput.value = "Outros";
+      }
     }
 
     if (elements.amountInput) {
@@ -683,7 +1096,29 @@
     elements.confirmDeleteBtn?.addEventListener("click", confirmDeleteTransaction);
     elements.amountInput?.addEventListener("input", clearFormFeedback);
     elements.descriptionInput?.addEventListener("input", clearFormFeedback);
+    elements.categoryInput?.addEventListener("change", clearFormFeedback);
     elements.dateInput?.addEventListener("input", clearFormFeedback);
+    elements.retryAnalyticsBtn?.addEventListener("click", loadAnalytics);
+
+    elements.reportDownloadButtons?.forEach((button) => {
+      button.addEventListener("click", () => previewReport(button));
+    });
+
+    elements.closePdfPreviewBtn?.addEventListener("click", closePdfPreview);
+    elements.cancelPdfPreviewBtn?.addEventListener("click", closePdfPreview);
+    elements.downloadPreviewedPdfBtn?.addEventListener("click", downloadPreviewedPdf);
+
+    elements.pdfPreviewModal?.addEventListener("click", (event) => {
+      if (event.target === elements.pdfPreviewModal) {
+        closePdfPreview();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !elements.pdfPreviewModal?.classList.contains("hidden")) {
+        closePdfPreview();
+      }
+    });
 
     elements.editProfileBtn?.addEventListener("click", () => {
       window.location.href = "editUser.html";
@@ -708,15 +1143,21 @@
     });
 
     elements.toggleTransactionsBtn?.addEventListener("click", () => {
-      state.showAllTransactions = !state.showAllTransactions;
-      renderTransactions(state.allTransactions);
+      window.location.href = "transactions.html";
     });
+
+    window.addEventListener("resize", scheduleTransactionPreviewRender);
 
     elements.chartFilterButtons?.forEach((button) => {
       button.addEventListener("click", () => {
         state.chartRange = button.dataset.range;
         renderDashboardData();
       });
+    });
+
+    elements.subtractFirstIncomeCheckbox?.addEventListener("change", (event) => {
+      state.subtractFirstIncome = event.currentTarget.checked;
+      renderDashboardData();
     });
 
     setupCharCount();
@@ -728,6 +1169,11 @@
     elements.dateInput.min = MIN_TRANSACTION_DATE;
     elements.dateInput.max = dateUtils.getTodayDateKey();
     setTransactionDateValue(dateUtils.getDefaultTransactionDateKey());
+
+    if (elements.reportMonth) {
+      elements.reportMonth.min = MIN_TRANSACTION_DATE.slice(0, 7);
+      elements.reportMonth.max = dateUtils.getTodayDateKey().slice(0, 7);
+    }
   }
 
   function init() {
@@ -735,6 +1181,7 @@
     loadCachedUserProfile();
     setupInitialDateLimits();
     setupEvents();
+    setupTransactionPreviewResizeObserver();
     loadCurrentUserProfile();
     loadTransactions();
   }
