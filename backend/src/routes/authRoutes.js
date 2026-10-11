@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Transaction = require("../models/Transaction");
 const authMiddleware = require("../middleware/authMiddleware");
+const { warmAnalyticsService } = require("../services/analyticsWarmup");
 
 const router = express.Router();
 
@@ -191,6 +192,8 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+
+    warmAnalyticsService();
 
     return res.json({
       message: "Login realizado",

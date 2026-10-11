@@ -1,4 +1,13 @@
-const DEFAULT_TIMEOUT_MS = 5000;
+const DEFAULT_TIMEOUT_MS = 20000;
+const DEFAULT_RETRY_WINDOW_MS = 90000;
+const RETRYABLE_STATUS_CODES = new Set([502, 503, 504]);
+const NETWORK_ERROR_CODES = new Set([
+  "ECONNREFUSED",
+  "ENOTFOUND",
+  "ETIMEDOUT",
+  "ECONNRESET",
+  "UND_ERR_CONNECT_TIMEOUT"
+]);
 
 class AnalyticsServiceError extends Error {
   constructor(message, statusCode, cause = null) {
@@ -13,9 +22,13 @@ function getAnalyticsConfig() {
   const baseUrl = String(process.env.ANALYTICS_SERVICE_URL || "").replace(/\/+$/, "");
   const apiKey = String(process.env.ANALYTICS_API_KEY || "");
   const configuredTimeout = Number(process.env.ANALYTICS_TIMEOUT_MS);
+  const configuredRetryWindow = Number(process.env.ANALYTICS_RETRY_WINDOW_MS);
   const timeoutMs = Number.isFinite(configuredTimeout) && configuredTimeout > 0
     ? configuredTimeout
     : DEFAULT_TIMEOUT_MS;
+  const retryWindowMs = Number.isFinite(configuredRetryWindow) && configuredRetryWindow > 0
+    ? configuredRetryWindow
+    : DEFAULT_RETRY_WINDOW_MS;
 
   if (!baseUrl || !apiKey) {
     throw new AnalyticsServiceError(
@@ -24,37 +37,119 @@ function getAnalyticsConfig() {
     );
   }
 
-  return { apiKey, baseUrl, timeoutMs };
+  return { apiKey, baseUrl, timeoutMs, retryWindowMs };
+}
+
+function sleep(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function getNetworkErrorCode(error) {
+  return error?.cause?.code || error?.code || "";
+}
+
+function isRetryableNetworkError(error) {
+  return error?.name === "AbortError" ||
+    NETWORK_ERROR_CODES.has(getNetworkErrorCode(error));
+}
+
+function getRetryDelay(attempt) {
+  return Math.min(1000 * (2 ** (attempt - 1)), 10000);
+}
+
+async function fetchWithRetry(url, options, { attemptTimeoutMs, windowMs }) {
+  const startedAt = Date.now();
+  let attempt = 0;
+
+  while (Date.now() - startedAt < windowMs) {
+    attempt += 1;
+    const remainingMs = windowMs - (Date.now() - startedAt);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      Math.min(attemptTimeoutMs, remainingMs)
+    );
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+
+      if (!RETRYABLE_STATUS_CODES.has(response.status)) {
+        return response;
+      }
+
+      await response.arrayBuffer();
+      console.warn("Tentativa do serviço de análise falhou:", {
+        attempt,
+        reason: `HTTP ${response.status} ${response.statusText}`
+      });
+    } catch (error) {
+      if (!isRetryableNetworkError(error)) {
+        throw error;
+      }
+
+      console.warn("Tentativa do serviço de análise falhou:", {
+        attempt,
+        reason: error?.name === "AbortError"
+          ? "timeout da tentativa"
+          : `${getNetworkErrorCode(error) || "erro de rede"}: ${error.message}`
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    const delayMs = Math.min(
+      getRetryDelay(attempt),
+      windowMs - (Date.now() - startedAt)
+    );
+
+    if (delayMs <= 0) {
+      break;
+    }
+
+    await sleep(delayMs);
+  }
+
+  throw new AnalyticsServiceError(
+    "O serviço de análise está indisponível no momento. Tente novamente em instantes.",
+    503
+  );
 }
 
 async function callAnalyticsService(path, payload, readResponse) {
-  const { apiKey, baseUrl, timeoutMs } = getAnalyticsConfig();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const { apiKey, baseUrl, timeoutMs, retryWindowMs } = getAnalyticsConfig();
 
   try {
-    const response = await fetch(`${baseUrl}${path}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Internal-API-Key": apiKey
+    const response = await fetchWithRetry(
+      `${baseUrl}${path}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-API-Key": apiKey
+        },
+        body: JSON.stringify(payload)
       },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    });
+      {
+        attemptTimeoutMs: timeoutMs,
+        windowMs: retryWindowMs
+      }
+    );
 
     if (!response.ok) {
-      let detail = "";
+      const body = (await response.text()).slice(0, 500);
 
-      try {
-        const errorBody = await response.json();
-        detail = typeof errorBody.detail === "string" ? errorBody.detail : "";
-      } catch (error) {
-        detail = "";
-      }
+      console.error("O serviço de análise recusou a solicitação:", {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint: `${baseUrl}${path}`,
+        body
+      });
 
       throw new AnalyticsServiceError(
-        detail || "O serviço de análise recusou a solicitação.",
+        "O serviço de análise recusou a solicitação.",
         502
       );
     }
@@ -85,13 +180,16 @@ async function callAnalyticsService(path, payload, readResponse) {
       );
     }
 
+    console.error("Erro na integração com o serviço de análise:", {
+      code: getNetworkErrorCode(error),
+      message: error.message
+    });
+
     throw new AnalyticsServiceError(
       "O serviço de análise está indisponível no momento. O restante do EZSaldo continua funcionando.",
       503,
       error
     );
-  } finally {
-    clearTimeout(timeoutId);
   }
 }
 
@@ -113,6 +211,7 @@ async function getMonthlyReport(payload, format) {
 
 module.exports = {
   AnalyticsServiceError,
+  fetchWithRetry,
   getAnalyticsSummary,
   getMonthlyReport
 };
