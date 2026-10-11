@@ -10,9 +10,10 @@
 ![Expo SDK 57](https://img.shields.io/badge/Expo-SDK_57-000020?style=for-the-badge&logo=expo&logoColor=white)
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-EZSaldo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://ezsaldo.vercel.app)
+[![Landing Page](https://img.shields.io/badge/Landing_Page-EZSaldo-35C2FF?style=for-the-badge&logo=githubpages&logoColor=white)](https://kiellzz.github.io/financial-tracker/)
 [![Android Releases](https://img.shields.io/badge/Android-Releases-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/kiellzz/financial-tracker/releases)
 
-**EZSaldo** is a full-stack financial application for tracking income and expenses, monitoring balance changes, and turning transaction history into clear insights. It is available as a [web app](https://ezsaldo.vercel.app) and an Android app built with Expo/React Native. A static product [landing page](./landing) is prepared for GitHub Pages.
+**EZSaldo** is a full-stack financial application for tracking income and expenses, monitoring balance changes, and turning transaction history into clear insights. It is available as a [web app](https://ezsaldo.vercel.app) and an Android app built with Expo/React Native. Its product [landing page](https://kiellzz.github.io/financial-tracker/) is live on GitHub Pages.
 
 In addition to traditional financial management, the project includes an independent Python service for statistical calculations, projections, and reports. It demonstrates a realistic, secure architecture designed to evolve.
 
@@ -81,7 +82,7 @@ The resulting APK can be attached to a [GitHub Release](https://github.com/kiell
 
 ### Landing page
 
-[`landing/`](./landing) is a buildless static site linking to the [web app](https://ezsaldo.vercel.app) and the [GitHub Releases page](https://github.com/kiellzz/financial-tracker/releases). Open `landing/index.html` locally to inspect it. After GitHub Pages is configured with **GitHub Actions** as its source, the workflow at [`.github/workflows/landing-pages.yml`](./.github/workflows/landing-pages.yml) deploys that directory on pushes to `master` that change the landing page, or by manual dispatch. Details are in [`landing/README.md`](./landing/README.md).
+[`landing/`](./landing) is a buildless static site, published at **[kiellzz.github.io/financial-tracker](https://kiellzz.github.io/financial-tracker/)**. It links to the [web app](https://ezsaldo.vercel.app) and directly downloads the APK from the latest [GitHub Release](https://github.com/kiellzz/financial-tracker/releases). Open `landing/index.html` locally to inspect it. The workflow at [`.github/workflows/landing-pages.yml`](./.github/workflows/landing-pages.yml) deploys that directory on pushes to `master` that change the landing page, or by manual dispatch. Details are in [`landing/README.md`](./landing/README.md).
 
 ### Recommended: Docker Compose
 
