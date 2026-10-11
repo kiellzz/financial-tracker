@@ -1,0 +1,13 @@
+{
+  "cli": {
+    "version": ">= 24.1.2"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}

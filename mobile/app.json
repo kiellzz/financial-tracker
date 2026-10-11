@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "EZSaldo",
+    "slug": "ezsaldo-mobile",
+    "version": "1.0.0",
+    "icon": "./assets/icon.png",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#050b16"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O EZSaldo acessa suas fotos para atualizar sua imagem de perfil.",
+          "cameraPermission": "O EZSaldo acessa sua câmera para criar sua imagem de perfil.",
+          "microphonePermission": false
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "android": {
+      "package": "com.ezsaldo.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-foreground.png",
+        "backgroundColor": "#050b16"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.ezsaldo.mobile"
+    },
+    "web": {
+      "favicon": "./assets/icon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b8c43ebb-c88d-420c-9f10-6a2ad2542091"
+      }
+    },
+    "owner": "kiellzz"
+  }
+}

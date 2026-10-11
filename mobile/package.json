@@ -1,0 +1,24 @@
+{
+  "name": "ezsaldo-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-community/datetimepicker": "9.1.0",
+    "expo": "^57.0.0",
+    "expo-image-picker": "~57.0.20",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2"
+  }
+}
