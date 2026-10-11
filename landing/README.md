@@ -8,6 +8,6 @@ O workflow em `.github/workflows/landing-pages.yml` publica **somente** o conte�
 
 ## APK no GitHub Releases
 
-Os botões de Android apontam para `https://github.com/kiellzz/financial-tracker/releases`. Crie um release e anexe o APK gerado em `mobile/builds/EZSaldo-v1.0.0.apk` (arquivo local, ignorado pelo Git). Assim, visitantes poderão baixá-lo em **Assets** da versão mais recente. A landing não hospeda o APK diretamente.
+Os botões de Android apontam diretamente para `https://github.com/kiellzz/financial-tracker/releases/latest/download/EZSaldo.apk`. O link usa o arquivo `EZSaldo.apk` do release mais recente; mantenha esse nome nos próximos releases para que o botão continue funcionando. O rodapé oferece um link para a lista de releases. A landing não hospeda o APK diretamente.
 
 Os botões da versão web apontam para `https://ezsaldo.vercel.app`.
