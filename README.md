@@ -6,10 +6,13 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![pandas](https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Expo SDK 57](https://img.shields.io/badge/Expo-SDK_57-000020?style=for-the-badge&logo=expo&logoColor=white)
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-EZSaldo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://ezsaldo.vercel.app)
+[![Android Releases](https://img.shields.io/badge/Android-Releases-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/kiellzz/financial-tracker/releases)
 
-**EZSaldo** is a full-stack financial application for tracking income and expenses, monitoring balance changes, and turning transaction history into clear insights.
+**EZSaldo** is a full-stack financial application for tracking income and expenses, monitoring balance changes, and turning transaction history into clear insights. It is available as a [web app](https://ezsaldo.vercel.app) and an Android app built with Expo/React Native. A static product [landing page](./landing) is prepared for GitHub Pages.
 
 In addition to traditional financial management, the project includes an independent Python service for statistical calculations, projections, and reports. It demonstrates a realistic, secure architecture designed to evolve.
 
@@ -21,6 +24,7 @@ In addition to traditional financial management, the project includes an indepen
 - Spending by category, monthly trends, and previous-month comparisons.
 - IQR-based unusual expense detection and moving-average balance estimates.
 - Monthly PDF reports, responsive layout, and a read-only demo account.
+- Android app with transaction creation, editing and deletion; date, type and amount filters; financial analytics; and profile management.
 
 ## Financial analytics
 
@@ -29,9 +33,9 @@ In addition to traditional financial management, the project includes an indepen
 The analytics service is stateless and has no database access. Node authenticates the user, retrieves only their transactions, and sends Python only the fields required for analysis.
 
 ```text
-Frontend ── JWT ──> Node.js / Express ──> MongoDB
-                         │
-                         └── internal key ──> FastAPI + pandas
+Web / Android ── JWT ──> Node.js / Express ──> MongoDB
+                              │
+                              └── internal key ──> FastAPI + pandas
 ```
 
 The browser never calls FastAPI directly. If the analytics service is unavailable, only this section displays an error; transactions, profile management, and balance tracking remain available.
@@ -46,11 +50,38 @@ The browser never calls FastAPI directly. If the analytics service is unavailabl
 ## Stack
 
 - **Frontend:** HTML5, CSS3, JavaScript, and Chart.js.
+- **Mobile:** React Native, Expo SDK 57, React Native SVG, and EAS Build.
+- **Landing page:** static HTML and CSS, deployed through GitHub Actions to GitHub Pages.
 - **Backend:** Node.js, Express, Mongoose, JWT, and bcrypt.
 - **Analytics:** Python, FastAPI, Pydantic, pandas, and ReportLab.
 - **Data and infrastructure:** MongoDB, Docker Compose, and Vercel.
 
 ## Running locally
+
+### Mobile app (Expo SDK 57 / React Native)
+
+The Android app lives in [`mobile/`](./mobile) and uses the same Node API as the web frontend. It includes authentication, balance tracking, transaction creation/editing/deletion, transaction filters, financial analytics, and profile editing. Dates use a native calendar picker, and a negative amount is treated as an expense.
+
+```powershell
+cd mobile
+npm install
+npm start
+```
+
+The app points to the production API by default. Expo Go must match SDK 57. For a physical device connected to a locally running backend, set `EXPO_PUBLIC_API_URL` to the computer's LAN address before starting Expo. For Android Emulator, use `http://10.0.2.2:5000/api`. See [`mobile/README.md`](./mobile/README.md) for more details.
+
+To build a directly installable Android APK (not a Play Store AAB), use the `preview` profile in [`mobile/eas.json`](./mobile/eas.json):
+
+```powershell
+cd mobile
+eas build --platform android --profile preview
+```
+
+The resulting APK can be attached to a [GitHub Release](https://github.com/kiellzz/financial-tracker/releases) for sharing. Build files under `mobile/builds/` are ignored by Git; the repository does not contain the APK.
+
+### Landing page
+
+[`landing/`](./landing) is a buildless static site linking to the [web app](https://ezsaldo.vercel.app) and the [GitHub Releases page](https://github.com/kiellzz/financial-tracker/releases). Open `landing/index.html` locally to inspect it. After GitHub Pages is configured with **GitHub Actions** as its source, the workflow at [`.github/workflows/landing-pages.yml`](./.github/workflows/landing-pages.yml) deploys that directory on pushes to `master` that change the landing page, or by manual dispatch. Details are in [`landing/README.md`](./landing/README.md).
 
 ### Recommended: Docker Compose
 
@@ -147,4 +178,4 @@ Serve the `frontend/` directory on `localhost`. Use the same key for Node's `ANA
 
 ## Deployment
 
-The frontend is prepared for Vercel, the Node backend for a web service, the database for MongoDB Atlas, and FastAPI for an independent Docker service. In production, keep FastAPI inaccessible to the browser and configure every secret through the hosting provider's environment variables.
+The web frontend is prepared for Vercel, the landing page for GitHub Pages, the Node backend for a web service, the database for MongoDB Atlas, and FastAPI for an independent Docker service. Android APKs are built with EAS and can be distributed through GitHub Releases once an APK is attached to a release. In production, keep FastAPI inaccessible to clients and configure every secret through the hosting provider's environment variables.
