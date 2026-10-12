@@ -1,4 +1,5 @@
 const WARMUP_INTERVAL_MS = 5 * 60 * 1000;
+const { ensureAnalyticsServiceReady } = require("./analyticsClient");
 
 let lastWarmupAt = 0;
 
@@ -18,12 +19,7 @@ function warmAnalyticsService() {
 
   lastWarmupAt = now;
 
-  void fetch(`${baseUrl}/health`)
-    .then((response) => {
-      if (!response.ok) {
-        console.warn("Warm-up do serviço de análise retornou:", response.status);
-      }
-    })
+  void ensureAnalyticsServiceReady()
     .catch((error) => {
       console.warn("Warm-up do serviço de análise falhou:", {
         code: error?.cause?.code || error?.code,

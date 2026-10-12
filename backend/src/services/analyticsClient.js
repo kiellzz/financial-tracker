@@ -1,5 +1,6 @@
 const DEFAULT_TIMEOUT_MS = 20000;
 const DEFAULT_RETRY_WINDOW_MS = 90000;
+const ANALYTICS_READY_CACHE_MS = 5 * 60 * 1000;
 const RETRYABLE_STATUS_CODES = new Set([502, 503, 504]);
 const NETWORK_ERROR_CODES = new Set([
   "ECONNREFUSED",
@@ -8,6 +9,9 @@ const NETWORK_ERROR_CODES = new Set([
   "ECONNRESET",
   "UND_ERR_CONNECT_TIMEOUT"
 ]);
+
+let analyticsReadinessPromise = null;
+let analyticsReadyUntil = 0;
 
 class AnalyticsServiceError extends Error {
   constructor(message, statusCode, cause = null) {
@@ -118,10 +122,53 @@ async function fetchWithRetry(url, options, { attemptTimeoutMs, windowMs }) {
   );
 }
 
+async function ensureAnalyticsServiceReady(config = getAnalyticsConfig()) {
+  const { baseUrl, timeoutMs, retryWindowMs } = config;
+
+  if (Date.now() < analyticsReadyUntil) {
+    return;
+  }
+
+  if (!analyticsReadinessPromise) {
+    analyticsReadinessPromise = (async () => {
+      const response = await fetchWithRetry(
+        `${baseUrl}/health`,
+        { method: "GET" },
+        {
+          attemptTimeoutMs: timeoutMs,
+          windowMs: retryWindowMs
+        }
+      );
+
+      if (!response.ok) {
+        await response.arrayBuffer();
+        throw new AnalyticsServiceError(
+          "O serviço de análise não ficou pronto para receber solicitações.",
+          503
+        );
+      }
+
+      await response.arrayBuffer();
+      analyticsReadyUntil = Date.now() + ANALYTICS_READY_CACHE_MS;
+    })().finally(() => {
+      analyticsReadinessPromise = null;
+    });
+  }
+
+  return analyticsReadinessPromise;
+}
+
 async function callAnalyticsService(path, payload, readResponse) {
   const { apiKey, baseUrl, timeoutMs, retryWindowMs } = getAnalyticsConfig();
 
   try {
+    await ensureAnalyticsServiceReady({
+      apiKey,
+      baseUrl,
+      timeoutMs,
+      retryWindowMs
+    });
+
     const response = await fetchWithRetry(
       `${baseUrl}${path}`,
       {
@@ -211,6 +258,7 @@ async function getMonthlyReport(payload, format) {
 
 module.exports = {
   AnalyticsServiceError,
+  ensureAnalyticsServiceReady,
   fetchWithRetry,
   getAnalyticsSummary,
   getMonthlyReport

@@ -5,8 +5,11 @@ const {
   ensureDemoAccount,
   startDemoAccountResetSchedule
 } = require("./services/demoAccountService");
+const { warmAnalyticsService } = require("./services/analyticsWarmup");
 
 const PORT = process.env.PORT || 5000;
+
+warmAnalyticsService();
 
 mongoose
   .connect(process.env.MONGO_URI)

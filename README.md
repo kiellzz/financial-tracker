@@ -154,6 +154,7 @@ Serve the `frontend/` directory on `localhost`. Use the same key for Node's `ANA
 | `ANALYTICS_SERVICE_URL` | Internal FastAPI URL |
 | `ANALYTICS_API_KEY` | Key shared by Node and Python |
 | `ANALYTICS_TIMEOUT_MS` | Analytics timeout; default: 5 seconds |
+| `ANALYTICS_RETRY_WINDOW_MS` | Maximum cold-start retry window; default: 90 seconds |
 | `DEMO_ACCOUNT_ENABLED` | Enables the demo account |
 | `DEMO_ACCOUNT_RESET_INTERVAL_MINUTES` | Restore interval; default: 30 minutes |
 
